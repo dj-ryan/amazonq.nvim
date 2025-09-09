@@ -49,7 +49,7 @@ function M.setup(opts)
   })
 
   if opts.inline_suggest ~= false then
-    completion.setup()
+    completion.setup({ context_completion = opts.context_completion ~= false })
   end
 
   -- Define the :AmazonQ command.

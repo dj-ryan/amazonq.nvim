@@ -129,6 +129,9 @@ require('amazonq').setup({
   -- Enable/disable inline code suggestions
   inline_suggest = true,
 
+  -- Automatically trigger completions based on code context
+  context_completion = true,
+
   -- Configure the chat panel position and appearance
   on_chat_open = function()
     vim.cmd[[
@@ -150,14 +153,15 @@ To use inline suggestions:
 
 1. Authenticate with `:AmazonQ login`
 2. Start typing in a supported filetype
-3. Trigger completion using your completion plugin's keybinding
+3. Suggestions will automatically appear for common code patterns. Use your completion plugin or press `<Tab>` to accept.
 
-Inline suggestions are enabled by default. To disable them:
+Inline suggestions and context-based triggers are enabled by default. To disable them:
 
 ```lua
 require('amazonq').setup({
   -- Other settings...
   inline_suggest = false,
+  context_completion = false,
 })
 ```
 

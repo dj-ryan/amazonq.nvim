@@ -15,4 +15,4 @@ format:
 	stylua --config-path .stylua.toml --color=always --respect-ignores --glob '**/*.lua' -- .
 
 test:
-	nvim -c "cd lua/" -l ../test/util_spec.lua
+	nvim -c "cd lua/" -l ../test/util_spec.lua -l ../test/completion_spec.lua
