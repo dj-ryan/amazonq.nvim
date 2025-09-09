@@ -153,7 +153,7 @@ To use inline suggestions:
 
 1. Authenticate with `:AmazonQ login`
 2. Start typing in a supported filetype
-3. Suggestions will automatically appear for common code patterns. Use your completion plugin or press `<Tab>` to accept.
+3. Suggestions will automatically appear for common code patterns such as function declarations or variable assignments. Use your completion plugin or press `<Tab>` to accept.
 
 Inline suggestions and context-based triggers are enabled by default. To disable them:
 
