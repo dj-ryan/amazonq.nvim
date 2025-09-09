@@ -150,7 +150,7 @@ end
 --- @param line string Current command-line up to cursor.
 --- @param pos number Cursor position in the command-line.
 --- @return string[] # List of completion candidates
-function M.cmd_complete(arg, line, pos)
+function M.cmd_complete(arg, _line, _pos)
   local subcmds = {
     'clear',
     'help',

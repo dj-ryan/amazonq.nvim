@@ -95,7 +95,7 @@ local function ctxfile(scope)
     -- TODO: need to think about this
     error('not implemented yet')
   else
-    error()
+    error('invalid scope')
   end
 end
 
@@ -235,7 +235,7 @@ function M.open_chat()
     end
 
     assert(chatbuf)
-    vim.cmd[[normal! G$]]  -- Place cursor at end of prompt.
+    vim.cmd [[normal! G$]] -- Place cursor at end of prompt.
 
     -- User or a plugin may have deleted/unloaded the buffer.
     -- Then we need to reinitialize it.

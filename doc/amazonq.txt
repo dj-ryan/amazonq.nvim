@@ -186,11 +186,13 @@ completion plugin, but typically it is (in insert-mode) one of: `CTRL-space`,
 `ALT-space`, `CTRL-x CTRL-o`, `CTRL-x CTRL-u`.
 
 Inline suggestions are enabled by default. To disable them pass
-`inline_suggest=false` to `require('amazonq').setup()`. >lua
+`inline_suggest=false` to `require('amazonq').setup()`. To disable automatic
+context-based triggers, also set `context_completion=false`. >lua
 
   require('amazonq').setup({
     ...,
     inline_suggest = true,
+    context_completion = true,
   })
 
 ==============================================================================
@@ -214,8 +216,9 @@ is required, all other settings are optional): >lua
         'amazonq', 'java', 'python', 'typescript', 'javascript',
         'csharp', 'ruby', 'kotlin', 'shell', 'sql', 'c', 'cpp', 'go', 'rust', 'lua',
     },
-    -- Enable inline code suggestions.
+    -- Enable inline code suggestions and context triggers.
     inline_suggest = true,
+    context_completion = true,
     -- Customize how the chat window is set up.
     on_chat_open = function()
       vim.cmd[[

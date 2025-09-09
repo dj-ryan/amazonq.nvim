@@ -4,7 +4,37 @@ local log = require('amazonq.log')
 local lspserver = require('amazonq.lsp.server')
 
 local M = {}
+M.config = { context_completion = true }
 local in_proc_server
+
+local function should_trigger_from_text(text)
+  if not text or text == '' then
+    return false
+  end
+  if text:match('^%s*[%-%/%#]') then
+    return false
+  end
+  if text:match('%(%s*$') or text:match('%([%w_,%s]*$') then
+    return true
+  end
+  if text:match('function%s+[%w_]*$') or text:match('def%s+[%w_]*$') then
+    return true
+  end
+  if text:match('if%s+.*$') or text:match('for%s+.*$') or text:match('while%s+.*$') then
+    return true
+  end
+  if text:match('%w+$') then
+    return true
+  end
+  return false
+end
+
+local function should_trigger_completion()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2]
+  local text = line:sub(1, col)
+  return should_trigger_from_text(text)
+end
 
 function M.get_client()
   local clients = vim.lsp.get_clients({
@@ -22,28 +52,32 @@ local function create_server()
   local srv = lspserver.create_server({
     capabilities = {
       completionProvider = {
-        -- triggerCharacters = { '.' },
-        -- 👀??
-        triggerCharacters = {}, -- No automatic triggers, only manual.
+        triggerCharacters = { '.', '(', ',', '\n' },
       },
     },
     handlers = {
-      ['textDocument/completion'] = function(_, _, on_complete)
+      ['textDocument/completion'] = function(_, params, on_complete)
         local client = assert(M.get_client())
         log.log('Generating code completion')
+        local req_params = vim.deepcopy(params)
+        req_params.context = req_params.context
+          or {
+            triggerKind = vim.lsp.protocol.CompletionTriggerKind.Invoked,
+          }
 
-        local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
-        params.context = {
-          -- Expected by: https://github.com/aws/language-servers/blob/a3b88c0400335890d8d6d3440809a3b197e14e11/server/aws-lsp-codewhisperer/src/language-server/codeWhispererServer.ts#L354
-          triggerKind = vim.lsp.protocol.CompletionTriggerKind.Invoked,
+        local cursor_position = req_params.position
+        local current_line = cursor_position.line
+        local current_col = cursor_position.character
+
+        local bufnr = vim.uri_to_bufnr(req_params.textDocument.uri)
+        local before = vim.api.nvim_buf_get_lines(bufnr, math.max(0, current_line - 20), current_line, false)
+        local after = vim.api.nvim_buf_get_lines(bufnr, current_line + 1, current_line + 21, false)
+        req_params._textAround = {
+          before = table.concat(before, '\n'),
+          after = table.concat(after, '\n'),
         }
 
-        -- Get the current line and cursor position
-        local cursor_position = vim.api.nvim_win_get_cursor(0)
-        local current_line = cursor_position[1] - 1 -- Subtract 1 for 0-indexing
-        local current_col = cursor_position[2]
-
-        lsp.lsp_request(client, 'aws/textDocument/inlineCompletionWithReferences', params, function(err, result)
+        lsp.lsp_request(client, 'aws/textDocument/inlineCompletionWithReferences', req_params, function(err, result)
           if err then
             util.msg(('Generating code completion failed: %s'):format(vim.inspect(err)), vim.log.levels.ERROR)
           elseif result and result.items then
@@ -126,10 +160,25 @@ function M.start(config)
   })
 end
 
-function M.setup()
+function M.setup(opts)
+  opts = opts or {}
+  M.config = vim.tbl_deep_extend('force', M.config, opts)
   in_proc_server = create_server()
+  if M.config.context_completion then
+    vim.api.nvim_create_autocmd({ 'TextChangedI', 'CursorHoldI' }, {
+      group = lsp.augroup,
+      callback = function()
+        if should_trigger_completion() then
+          vim.lsp.buf.completion()
+        end
+      end,
+    })
+  end
 end
 
 M.setup()
+
+M.should_trigger_completion = should_trigger_completion
+M._should_trigger_from_text = should_trigger_from_text
 
 return M
