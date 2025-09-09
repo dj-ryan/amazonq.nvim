@@ -6,6 +6,7 @@ local lspserver = require('amazonq.lsp.server')
 local M = {}
 M.config = { context_completion = true }
 local in_proc_server
+local next_trigger_kind
 
 local function should_trigger_from_text(text)
   if not text or text == '' then
@@ -21,6 +22,9 @@ local function should_trigger_from_text(text)
     return true
   end
   if text:match('if%s+.*$') or text:match('for%s+.*$') or text:match('while%s+.*$') then
+    return true
+  end
+  if text:match('[%w_]%s*=%s*$') then
     return true
   end
   if text:match('%w+$') then
@@ -60,10 +64,11 @@ local function create_server()
         local client = assert(M.get_client())
         log.log('Generating code completion')
         local req_params = vim.deepcopy(params)
-        req_params.context = req_params.context
-          or {
-            triggerKind = vim.lsp.protocol.CompletionTriggerKind.Invoked,
-          }
+        req_params.context = req_params.context or {}
+        req_params.context.triggerKind = next_trigger_kind
+          or req_params.context.triggerKind
+          or vim.lsp.protocol.CompletionTriggerKind.Invoked
+        next_trigger_kind = nil
 
         local cursor_position = req_params.position
         local current_line = cursor_position.line
@@ -169,6 +174,7 @@ function M.setup(opts)
       group = lsp.augroup,
       callback = function()
         if should_trigger_completion() then
+          next_trigger_kind = vim.lsp.protocol.CompletionTriggerKind.TriggerCharacter
           vim.lsp.buf.completion()
         end
       end,

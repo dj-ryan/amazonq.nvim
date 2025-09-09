@@ -11,6 +11,8 @@ local tests = {
   { 'function foo(', true },
   { 'if condition', true },
   { '-- comment', false },
+  { 'x =', true },
+  { 'a ==', false },
 }
 
 for _, t in ipairs(tests) do

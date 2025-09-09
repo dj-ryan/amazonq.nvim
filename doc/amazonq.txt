@@ -185,6 +185,9 @@ any configured `filetypes`. The keybinding to invoke completion depends on your
 completion plugin, but typically it is (in insert-mode) one of: `CTRL-space`,
 `ALT-space`, `CTRL-x CTRL-o`, `CTRL-x CTRL-u`.
 
+Common patterns such as function declarations or variable assignments will
+trigger suggestions automatically.
+
 Inline suggestions are enabled by default. To disable them pass
 `inline_suggest=false` to `require('amazonq').setup()`. To disable automatic
 context-based triggers, also set `context_completion=false`. >lua
